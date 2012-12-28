@@ -1,0 +1,132 @@
+	PROGRAM PING
+  	IMPLICIT NONE
+
+  	TYPE POINT
+	  REAL X, Y, Z, VX, VY, VZ, AX, AY, AZ, V, V2
+	  REAL VXMID, VYMID, VZMID, XMID, YMID, ZMID, VMID, VMID2
+	  REAL AXMID, AYMID, AZMID
+  	END TYPE POINT
+
+  	INTEGER I, J
+  	REAL T, CD
+  	REAL :: RAD = 0.019
+  	REAL, PARAMETER :: G = -9.8
+	REAL, PARAMETER :: DT = 0.001
+  	REAL, PARAMETER :: DT2 = 0.5*DT
+  	REAL VX0, VY0, VZ0, ANGLE
+  	TYPE (POINT) PARTICLE
+  	TYPE (POINT), DIMENSION(6) :: BALL
+  
+  	OPEN(UNIT=10, FILE = '38MM.out')
+	WRITE(10,*)'X		Y		Z		T		ANGLE'
+  	ANGLE = 0.093549
+	DO WHILE (ANGLE <= 1.047)
+  	T = 0.000
+  	
+  	VX0 = 31.25*COS(ANGLE)
+  	VZ0 = 31.25*SIN(ANGLE)*0.4 
+  	VY0 = 0
+
+!INITIALIZE THE BALL
+  	BALL % VX = VX0 
+  	BALL % VY = VY0 
+  	BALL % VZ = VZ0 
+
+ 	BALL(1) % X = RAD 
+  	BALL(1) % Y = 0 
+  	BALL(1) % Z = RAD 
+  
+  	BALL(2) % X = 0 
+  	BALL(2) % Y = RAD
+  	BALL(2) % Z = RAD 
+
+  	BALL(3) % X = 0 
+  	BALL(3) % Y = 0
+  	BALL(3) % Z = 2*RAD 
+
+  	BALL(4) % X = 0 
+  	BALL(4) % Y = RAD
+  	BALL(4) % Z = RAD 
+
+  	BALL(5) % X = 0 
+  	BALL(5) % Y = 0
+  	BALL(5) % Z = 0 
+
+  	BALL(6) % X = -RAD 
+  	BALL(6) % Y = 0
+  	BALL(6) % Z = RAD 
+
+ 	!PRINT*, 'T= ', T
+	!WRITE(10,*) ' - ANGLE: ', ANGLE*57.3
+	
+
+    	!DO I = 1, 6
+     	  WRITE(10, 100) BALL(5)%X, BALL(5)%Y, BALL(5)%Z, T, ANGLE*57.3
+	  !WRITE(10,*) ' - '
+    	!END DO 
+
+  		DO WHILE (T <= 0.6)
+  			IF(BALL(5)%Z .LT. 0) THEN
+    	  	  	  GO TO 20
+  			END IF
+
+  		BALL% V2 = BALL% VX * BALL% VX + BALL% VZ * BALL% VZ ! + BALL% VY * BALL% VY 
+		BALL% V = SQRT(BALL%V2)
+
+		CD = -3782.79*RAD*RAD/2.7
+		!PRINT*, 'V: ', BALL%V
+
+  		BALL% AX = CD * BALL% V * BALL% VX
+  		!BALL% AY = CD * BALL% V * BALL% VY
+  		BALL% AZ = G + CD * BALL% V * BALL% VZ
+
+  		BALL% VXMID = BALL% VX + BALL% AX * DT2
+		!BALL% VYMID = BALL% VY + BALL% AY * DT2	!VELOCITY AT MIDPOINT
+		BALL% VZMID = BALL% VZ + BALL% AZ * DT2
+
+		BALL% XMID = BALL% X + BALL% VXMID * DT
+		!BALL% YMID = BALL% Y + BALL% VYMID * DT	!POSISTION AT MIDPOINT
+		BALL% ZMID = BALL% Z + BALL% VZMID * DT
+
+		BALL% VMID2 = BALL% VXMID * BALL% VXMID + BALL%VZMID * BALL%VZMID !+ BALL%VYMID * BALL%VYMID
+		BALL% VMID = SQRT(BALL%VMID2)
+	 
+		BALL% AXMID = CD * BALL% VMID * BALL% VMID
+		!BALL% AYMID = CD * BALL% VMID * BALL% VMID	!ACCELERATION AT MIDPOINT
+		BALL% AZMID = G + CD * BALL% VMID * BALL% VMID
+
+		BALL% VX = BALL% VX + BALL% AXMID * DT
+		!BALL% VY = BALL% VY + BALL% AYMID * DT
+		BALL% VZ = BALL% VZ + BALL% AZMID * DT
+
+		BALL% X = BALL% X + BALL% VXMID * DT
+		!BALL% Y = BALL% Y + BALL% VYMID * DT
+		BALL% Z = BALL% Z + BALL% VZMID * DT
+
+    		T = T + DT
+    			!DO I = 1, 6
+     	  		  WRITE(10, 100) BALL(5)%X, BALL(5)%Y, BALL(5)%Z, T, ANGLE*57.3
+			  !WRITE(10,*)' '
+    			!END DO 
+   		END DO
+
+20  		WRITE(10, 100) BALL(5)%X, BALL(5)%Y, BALL(5)%Z, T, ANGLE*57.3
+    		
+  	ANGLE = ANGLE + 0.01745
+  	END DO
+
+100     format(5f12.6)
+
+	CLOSE(UNIT=10)
+	END PROGRAM
+
+
+
+
+
+
+
+
+
+
+
